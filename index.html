@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>结构之道 · 线性结构的综合应用</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #f5f4f0; color: #1a1a1a;
+    min-height: 100vh; display: flex; flex-direction: column;
+  }
+
+  /* ── Hero Header ── */
+  .hero {
+    background: #fff; border-bottom: 0.5px solid #ddd;
+    padding: 22px 28px 18px; flex-shrink: 0;
+  }
+  .hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .hero-title-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .hero-logo {
+    width: 38px; height: 38px; border-radius: 10px; background: #534AB7;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 15px; flex-shrink: 0;
+  }
+  .hero-title { font-size: 22px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.02em; line-height: 1.2; }
+  .hero-title em { font-style: normal; color: #534AB7; }
+  .hero-desc { font-size: 13px; color: #666; line-height: 1.75; max-width: 640px; padding-left: 50px; }
+  .hero-desc span { color: #534AB7; font-weight: 500; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .model-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: #f5f4f0; border-radius: 8px;
+    padding: 5px 10px; font-size: 12px; color: #555;
+    border: 0.5px solid #e0e0e0; white-space: nowrap;
+  }
+  .model-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; }
+  .model-badge .dot.on { background: #1D9E75; }
+  .settings-btn {
+    background: #fff; border: 0.5px solid #ddd; border-radius: 8px;
+    padding: 6px 14px; font-size: 12px; color: #555; cursor: pointer;
+    font-family: inherit; transition: all 0.2s; white-space: nowrap;
+  }
+  .settings-btn:hover { border-color: #534AB7; color: #534AB7; }
+
+  /* ── Progress ── */
+  .progress-bar {
+    background: #fff; border-bottom: 0.5px solid #ddd;
+    padding: 8px 20px; display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+  }
+  .progress-bar span { font-size: 12px; color: #888; margin-right: 4px; }
+  .scene-dot {
+    width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid #ddd;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; color: #aaa; transition: all 0.3s;
+  }
+  .scene-dot.done   { background: #534AB7; border-color: #534AB7; color: #fff; }
+  .scene-dot.active { background: #fff; border-color: #534AB7; color: #534AB7; }
+
+  /* ── Main layout ── */
+  .main { display: flex; flex: 1; overflow: hidden; }
+  .chat-panel {
+    flex: 1; display: flex; flex-direction: column;
+    background: #fff; border-right: 0.5px solid #ddd; min-width: 0;
+  }
+  .messages {
+    flex: 1; overflow-y: auto; padding: 18px 22px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .msg { display: flex; gap: 9px; }
+  .msg.ai   { flex-direction: row; }
+  .msg.user { flex-direction: row-reverse; }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+  }
+  .avatar.ai-av   { background: #EEEDFE; color: #534AB7; }
+  .avatar.user-av { background: #E1F5EE; color: #0F6E56; }
+  .bubble {
+    max-width: 76%; padding: 11px 15px; border-radius: 12px;
+    font-size: 14px; line-height: 1.75;
+  }
+  .msg.ai   .bubble { background: #f5f4f0; border-radius: 2px 12px 12px 12px; color: #1a1a1a; }
+  .msg.user .bubble { background: #534AB7; border-radius: 12px 2px 12px 12px; color: #fff; }
+  .bubble code {
+    font-family: 'Courier New', monospace; font-size: 12.5px;
+    background: rgba(0,0,0,0.07); padding: 1px 5px; border-radius: 4px;
+  }
+  .bubble pre {
+    background: #1e1e2e; color: #cdd6f4; border-radius: 8px;
+    padding: 12px 14px; margin: 8px 0 4px;
+    font-size: 12.5px; font-family: 'Courier New', monospace;
+    overflow-x: auto; line-height: 1.6; white-space: pre;
+  }
+  .opt-btn {
+    background: #fff; border: 1.5px solid #534AB7; color: #534AB7;
+    border-radius: 20px; padding: 6px 18px; font-size: 13px;
+    cursor: pointer; transition: all 0.2s; font-family: inherit; margin: 10px 0;
+  }
+  .opt-btn:hover { background: #534AB7; color: #fff; }
+
+  .input-area {
+    padding: 12px 14px; border-top: 0.5px solid #eee;
+    display: flex; gap: 8px; align-items: flex-end;
+  }
+  .input-area textarea {
+    flex: 1; border: 1px solid #ddd; border-radius: 10px;
+    padding: 10px 13px; font-size: 14px; font-family: inherit;
+    resize: none; min-height: 42px; max-height: 120px;
+    outline: none; background: #fafafa; color: #1a1a1a; line-height: 1.5; transition: border 0.2s;
+  }
+  .input-area textarea:focus { border-color: #534AB7; background: #fff; }
+  .send-btn {
+    background: #534AB7; color: #fff; border: none; border-radius: 10px;
+    width: 42px; height: 42px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 15px; transition: background 0.2s;
+  }
+  .send-btn:hover    { background: #3C3489; }
+  .send-btn:disabled { background: #bbb; cursor: not-allowed; }
+
+  /* ── Right panel ── */
+  .right-panel {
+    width: 300px; display: flex; flex-direction: column;
+    background: #fafafa; flex-shrink: 0; overflow: hidden;
+  }
+  .panel-header {
+    padding: 11px 16px; font-size: 11px; font-weight: 500; color: #999;
+    border-bottom: 0.5px solid #eee; background: #fff;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .scene-card { padding: 14px 16px; border-bottom: 0.5px solid #eee; }
+  .scene-card h3 { font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+  .scene-card p  { font-size: 12px; color: #666; line-height: 1.6; }
+  .scene-card .tag {
+    display: inline-block; font-size: 11px;
+    padding: 2px 9px; border-radius: 10px; margin-top: 7px; font-weight: 500;
+  }
+  .tag-stack   { background: #EEEDFE; color: #534AB7; }
+  .tag-queue   { background: #E1F5EE; color: #0F6E56; }
+  .tag-list    { background: #E6F1FB; color: #185FA5; }
+  .tag-unknown { background: #f1efe8; color: #888; }
+  .struct-summary { padding: 12px 16px; flex: 1; overflow-y: auto; }
+  .struct-item {
+    background: #fff; border: 0.5px solid #eee;
+    border-radius: 10px; padding: 11px 13px; margin-bottom: 9px;
+  }
+  .struct-item h4 { font-size: 12px; font-weight: 500; margin-bottom: 5px; color: #534AB7; }
+  .struct-item ul { padding-left: 14px; }
+  .struct-item ul li { font-size: 11.5px; color: #555; line-height: 1.8; }
+
+  /* ── Typing dots ── */
+  .typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+  .typing span {
+    width: 7px; height: 7px; border-radius: 50%; background: #bbb;
+    animation: bounce 1s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,80%,100% { transform: translateY(0); }
+    40%          { transform: translateY(-5px); }
+  }
+  .completed-banner {
+    text-align: center; padding: 20px;
+    background: #EAF3DE; border-radius: 12px; margin: 10px 0;
+  }
+  .completed-banner h3 { color: #3B6D11; font-size: 15px; margin-bottom: 6px; }
+  .completed-banner p  { font-size: 13px; color: #639922; }
+
+  /* ══════════════════════════════
+     Settings Modal — new card style
+     ══════════════════════════════ */
+  .modal-mask {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-mask.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 16px;
+    width: 480px; max-width: 95vw;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.18); overflow: hidden;
+  }
+  .modal-head {
+    padding: 20px 24px 16px; border-bottom: 0.5px solid #eee;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-head h2 { font-size: 16px; font-weight: 600; }
+  .modal-close {
+    background: none; border: none; font-size: 18px; cursor: pointer;
+    color: #aaa; padding: 2px 6px; border-radius: 6px; line-height: 1;
+  }
+  .modal-close:hover { background: #f5f4f0; color: #333; }
+  .modal-body { padding: 22px 24px; }
+
+  /* section label */
+  .sect-label {
+    font-size: 11px; font-weight: 500; color: #aaa;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;
+  }
+
+  /* model cards grid */
+  .model-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .mcard {
+    border: 1.5px solid #e8e8e8; border-radius: 12px;
+    padding: 14px 16px; cursor: pointer; transition: all 0.18s;
+    background: #fff; text-align: left; font-family: inherit;
+    position: relative;
+  }
+  .mcard:hover { border-color: #bbb; }
+  .mcard.selected { border-color: #534AB7; background: #faf9ff; }
+  .mcard .mcard-provider { font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: 400; }
+  .mcard .mcard-name     { font-size: 15px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+  .mcard .mcard-tag {
+    display: inline-block; font-size: 11px; font-weight: 500;
+    padding: 2px 9px; border-radius: 6px;
+  }
+  .mcard .mcard-tag.domestic { background: #E1F5EE; color: #0F6E56; }
+  .mcard .mcard-tag.overseas { background: #FAEEDA; color: #854F0B; }
+  .mcard.selected::after {
+    content: '✓';
+    position: absolute; top: 10px; right: 12px;
+    font-size: 13px; color: #534AB7; font-weight: 600;
+  }
+
+  /* key input */
+  .key-section { margin-bottom: 6px; }
+  .key-section .sect-label { margin-bottom: 8px; }
+  .key-wrap { position: relative; }
+  .key-input {
+    width: 100%; border: 1px solid #ddd; border-radius: 10px;
+    padding: 12px 44px 12px 16px; font-size: 13px;
+    font-family: 'Courier New', monospace;
+    outline: none; color: #1a1a1a; background: #fafafa; transition: border 0.2s;
+  }
+  .key-input:focus { border-color: #534AB7; background: #fff; }
+  .eye-btn {
+    position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: #bbb; font-size: 16px; line-height: 1;
+  }
+  .eye-btn:hover { color: #534AB7; }
+  .key-hint { margin-top: 7px; font-size: 11.5px; color: #aaa; line-height: 1.5; }
+  .key-hint a { color: #534AB7; text-decoration: none; }
+  .key-hint a:hover { text-decoration: underline; }
+
+  /* save button */
+  .modal-foot { padding: 6px 24px 24px; }
+  .btn-start {
+    width: 100%; padding: 14px;
+    background: #1a1a2e; color: #fff; border: none;
+    border-radius: 12px; font-size: 15px; font-weight: 500;
+    cursor: pointer; font-family: inherit; transition: background 0.2s;
+  }
+  .btn-start:hover { background: #2d2d4e; }
+  .btn-start:disabled { background: #bbb; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<!-- ── Hero Header ── -->
+<div class="hero">
+  <div class="hero-top">
+    <div style="flex:1;min-width:0;">
+      <div class="hero-title-row">
+        <div class="hero-logo">DS</div>
+        <h1 class="hero-title">结构之<em>道</em> · 线性结构的综合应用</h1>
+      </div>
+      <p class="hero-desc">
+        本页面通过 <span>AI 对话</span> 引导你探究线性表、栈、队列的应用场景。
+        面对每一个真实问题，你需要独立分析其操作特点，判断适合的数据结构，
+        并给出 <span>C 语言描述</span>——AI 只提问和提示，答案由你推导。
+      </p>
+    </div>
+    <div class="header-right">
+      <div class="model-badge">
+        <div class="dot" id="modelDot"></div>
+        <span id="modelBadgeText">未配置</span>
+      </div>
+      <button class="settings-btn" onclick="openSettings()">⚙ 模型设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Progress ── -->
+<div class="progress-bar">
+  <span>关卡</span>
+  <div class="scene-dot active" id="dot-0">1</div>
+  <div class="scene-dot" id="dot-1">2</div>
+  <div class="scene-dot" id="dot-2">3</div>
+  <div class="scene-dot" id="dot-3">4</div>
+</div>
+
+<!-- ── Main ── -->
+<div class="main">
+  <div class="chat-panel">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <textarea id="userInput" placeholder="输入你的思考或回答…（Enter 发送，Shift+Enter 换行）" rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="panel-header">当前场景</div>
+    <div class="scene-card">
+      <h3 id="sceneTitle">—</h3>
+      <p id="sceneDesc">—</p>
+      <span class="tag tag-unknown" id="sceneTag">待判断</span>
+    </div>
+    <div class="panel-header">结构特点速览</div>
+    <div class="struct-summary">
+      <div class="struct-item">
+        <h4>线性表（顺序 / 链式）</h4>
+        <ul>
+          <li>可随机存取（顺序表）</li>
+          <li>插入 / 删除任意位置</li>
+          <li>适合频繁查询或修改</li>
+        </ul>
+      </div>
+      <div class="struct-item">
+        <h4>栈（Stack）</h4>
+        <ul>
+          <li>后进先出（LIFO）</li>
+          <li>只在栈顶操作</li>
+          <li>适合嵌套、回溯、撤销</li>
+        </ul>
+      </div>
+      <div class="struct-item">
+        <h4>队列（Queue）</h4>
+        <ul>
+          <li>先进先出（FIFO）</li>
+          <li>队尾入、队头出</li>
+          <li>适合排队、缓冲、调度</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Settings Modal ══ -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>选择模型</h2>
+      <button class="modal-close" id="modalCloseBtn" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Model cards -->
+      <div class="sect-label">选择模型</div>
+      <div class="model-grid">
+        <button class="mcard" id="card-deepseek" onclick="selectModel('deepseek')">
+          <div class="mcard-provider">DeepSeek</div>
+          <div class="mcard-name">DeepSeek Chat</div>
+          <span class="mcard-tag domestic">国内直连</span>
+        </button>
+        <button class="mcard" id="card-qwen" onclick="selectModel('qwen')">
+          <div class="mcard-provider">阿里云</div>
+          <div class="mcard-name">Qwen Plus</div>
+          <span class="mcard-tag domestic">国内直连</span>
+        </button>
+        <button class="mcard" id="card-claude" onclick="selectModel('claude')">
+          <div class="mcard-provider">Anthropic</div>
+          <div class="mcard-name">Claude Sonnet 4</div>
+          <span class="mcard-tag overseas">需境外网络</span>
+        </button>
+        <button class="mcard" id="card-openai" onclick="selectModel('openai')">
+          <div class="mcard-provider">OpenAI</div>
+          <div class="mcard-name">GPT-4o</div>
+          <span class="mcard-tag overseas">需境外网络</span>
+        </button>
+      </div>
+
+      <!-- API Key -->
+      <div class="key-section">
+        <div class="sect-label">API KEY</div>
+        <div class="key-wrap">
+          <input class="key-input" type="password" id="keyInput" placeholder="粘贴你的 API Key…" autocomplete="off">
+          <button class="eye-btn" onclick="toggleEye()">👁</button>
+        </div>
+        <div class="key-hint" id="keyHint">请先选择模型</div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn-start" id="btnStart" onclick="saveAndStart()" disabled>保存并开始</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Provider definitions ── */
+const MODELS = {
+  deepseek: {
+    label: "DeepSeek Chat",
+    hint: '前往 <a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com</a> 获取 API Key',
+    call: async (history, sys, key) => {
+      const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+        body: JSON.stringify({ model: "deepseek-chat", max_tokens: 1000,
+          messages: [{ role:"system", content:sys }, ...history] })
+      });
+      if (!r.ok) { const e = await r.json().catch(()=>{}); throw new Error(e?.error?.message || "HTTP "+r.status); }
+      return (await r.json()).choices[0].message.content;
+    }
+  },
+  qwen: {
+    label: "Qwen Plus",
+    hint: '前往 <a href="https://bailian.console.aliyun.com/?apiKey=1" target="_blank">阿里云百炼</a> 获取 API Key',
+    call: async (history, sys, key) => {
+      const r = await fetch("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+        body: JSON.stringify({ model: "qwen-plus", max_tokens: 1000,
+          messages: [{ role:"system", content:sys }, ...history] })
+      });
+      if (!r.ok) { const e = await r.json().catch(()=>{}); throw new Error(e?.error?.message || "HTTP "+r.status); }
+      return (await r.json()).choices[0].message.content;
+    }
+  },
+  claude: {
+    label: "Claude Sonnet 4",
+    hint: '前往 <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> 获取 API Key',
+    call: async (history, sys, key) => {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: history })
+      });
+      if (!r.ok) { const e = await r.json().catch(()=>{}); throw new Error(e?.error?.message || "HTTP "+r.status); }
+      const d = await r.json();
+      return d.content.filter(b=>b.type==="text").map(b=>b.text).join("");
+    }
+  },
+  openai: {
+    label: "GPT-4o",
+    hint: '前往 <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a> 获取 API Key',
+    call: async (history, sys, key) => {
+      const r = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+        body: JSON.stringify({ model: "gpt-4o", max_tokens: 1000,
+          messages: [{ role:"system", content:sys }, ...history] })
+      });
+      if (!r.ok) { const e = await r.json().catch(()=>{}); throw new Error(e?.error?.message || "HTTP "+r.status); }
+      return (await r.json()).choices[0].message.content;
+    }
+  }
+};
+
+/* ── State ── */
+let cfg = { provider: "", key: "" };
+let selectedModel = "";
+let conversationHistory = [];
+let currentScene = 0;
+let isLoading = false;
+let isFirstStart = true;
+
+/* ── Scenes Pool (多样化题库) ── */
+const ALL_SCENES = [
+  // 栈 (Stack)
+  { title:"浏览器的「后退」按钮", desc:"你访问了 A → B → C 三个页面，点「后退」回到 B，再点回到 A。这个历史记录管理功能怎么实现？", tagClass:"tag-stack", tagText:"栈" },
+  { title:"文本编辑器的撤销功能", desc:"在写文章时，你输入了几段文字，按 Ctrl+Z 可以一步步撤销刚才的操作，恢复到之前的状态。", tagClass:"tag-stack", tagText:"栈" },
+  { title:"括号成对匹配检查", desc:"写一个编译器程序，需要判断源代码中 {[()]} 这样的表达式里的括号是否成对并且正确闭合。", tagClass:"tag-stack", tagText:"栈" },
+  { title:"迷宫寻路的回溯", desc:"在一个游戏中走迷宫，遇到死胡同时需要原路退回到上一个分叉口，选择另一条路继续探索。", tagClass:"tag-stack", tagText:"栈" },
+  // 队列 (Queue)
+  { title:"打印机任务调度", desc:"办公室里多台电脑同时向一台打印机发送任务，打印机按接收到的先后顺序依次处理打印。", tagClass:"tag-queue", tagText:"队列" },
+  { title:"餐厅叫号就餐系统", desc:"顾客在餐厅门口领号排队，有空桌时，系统总是叫最先领号的顾客进去就餐。", tagClass:"tag-queue", tagText:"队列" },
+  { title:"客服电话排队等待", desc:"拨打热线电话时系统提示'您前面还有5人，请等待'，最先打入的电话最先被接听处理。", tagClass:"tag-queue", tagText:"队列" },
+  // 线性表 (List)
+  { title:"学生成绩册管理", desc:"老师需要随时按学号查询某位同学的成绩，还要能随时在名单任意位置插入新转来的同学或删除退学的同学。", tagClass:"tag-list", tagText:"线性表" },
+  { title:"音乐播放列表调整", desc:"手机里的音乐播放器，可以按顺序播放，也可以随时把某一首歌移到列表顶部，或者直接删除不喜欢的歌。", tagClass:"tag-list", tagText:"线性表" },
+  { title:"微信通讯录好友管理", desc:"你的微信好友列表，支持按首字母快速查找某个好友，也支持随时添加新好友或删除不需要的联系人。", tagClass:"tag-list", tagText:"线性表" },
+  { title:"游戏实时排行榜", desc:"游戏里有一个积分排行榜，需要根据玩家的分数变化随时更新排名，支持快速查看第100名的玩家是谁。", tagClass:"tag-list", tagText:"线性表" }
+];
+
+let SCENES = [];
+
+function shuffle(array) {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+  return array;
+}
+
+const SYSTEM_PROMPT = `你是一位数据结构课程的助教，正在用苏格拉底式对话引导学生学习。
+学生刚学完：线性表（顺序表和链表）、栈、队列的C语言实现。
+
+你的任务：
+- 针对当前场景，提出引导性问题，不要直接给答案。
+- 提问时，请务必结合场景细节，把问题描述清楚、具体，不要问过于宽泛或模糊的问题。
+- 通过追问帮学生分析"操作特点"→"推导适合的数据结构"→"写出C语言描述"。
+- 学生答对一步就给正面反馈，再推进下一步。
+- 学生答错就给提示，不要直接纠正，引导他们再想想。
+- 最终引导学生写出C语言的结构体定义和1-2个核心操作的【函数首部】（也就是函数声明，比如 void push(Stack *s, int x)）。
+- 语气友好、耐心，像同学一起讨论，不要说教。
+- 使用markdown代码块展示C代码（用 \`\`\`c 包裹）。
+- 每次回复控制在150字左右，问题每次只能问1到2个。
+- 当前场景信息会在第一条消息中给出。
+
+【重要】场景完成标记规则：
+只有当学生已经同时达到以下三步，才在你的回复正文结束后，另起一行输出 [SCENE_COMPLETE] 标记：
+  1. 正确说出适合的数据结构（栈/队列/线性表）
+  2. 理解了核心操作特点（如后进先出LIFO/先进先出FIFO/随机存取或灵活插入等）
+  3. 给出了合理的C语言结构体定义，或核心操作的【函数首部】
+
+【绝对规则】（避免界面按钮提前出现导致对话中断）：
+1. 如果你在当前的回复中向学生提出了任何问题（无论大小），【绝对不能】输出 [SCENE_COMPLETE] 标记！只要问了问题，就必须等待学生回答。
+2. 只有在确认学生已全部掌握上述三点，且你在本次回复中仅仅是给出总结或夸奖，不再需要学生继续回答时，才能输出 [SCENE_COMPLETE]。
+3. 还在追问、纠错、提示阶段时，即使出现了代码块，也不能输出 [SCENE_COMPLETE]。
+
+关键知识点参考：
+栈的C定义：
+typedef struct { int data[MAXSIZE]; int top; } SqStack;
+队列的C定义：
+typedef struct { int data[MAXSIZE]; int front,rear; } SqQueue;
+链表节点：
+typedef struct LNode { int data; struct LNode *next; } LNode, *LinkList;`;
+
+/* ── Modal & Config ── */
+function loadCfg() {
+  try { const s = localStorage.getItem("ds_cfg3"); if (s) Object.assign(cfg, JSON.parse(s)); } catch(e) {}
+}
+function saveCfg() {
+  try { localStorage.setItem("ds_cfg3", JSON.stringify(cfg)); } catch(e) {}
+}
+
+function openSettings() {
+  selectedModel = "";
+  document.getElementById("keyInput").value = "";
+  updateCardSelection();
+  updateKeyHint();
+  checkStartable();
+  document.getElementById("modalCloseBtn").style.display = isFirstStart ? "none" : "block";
+  document.getElementById("modalMask").classList.add("open");
+}
+
+function closeSettings() {
+  if (!cfg.provider) return;
+  document.getElementById("modalMask").classList.remove("open");
+}
+
+function selectModel(id) {
+  selectedModel = id;
+  updateCardSelection();
+  updateKeyHint();
+  checkStartable();
+}
+
+function updateCardSelection() {
+  ["deepseek","qwen","claude","openai"].forEach(id => {
+    document.getElementById("card-"+id).classList.toggle("selected", id === selectedModel);
+  });
+}
+
+function updateKeyHint() {
+  const hint = document.getElementById("keyHint");
+  if (selectedModel && MODELS[selectedModel]) hint.innerHTML = MODELS[selectedModel].hint;
+  else hint.textContent = "请先选择模型";
+}
+
+function checkStartable() {
+  const key = document.getElementById("keyInput").value.trim();
+  document.getElementById("btnStart").disabled = !(selectedModel && key);
+}
+
+function toggleEye() {
+  const inp = document.getElementById("keyInput");
+  inp.type = inp.type === "password" ? "text" : "password";
+}
+
+async function saveAndStart() {
+  const key = document.getElementById("keyInput").value.trim();
+  if (!selectedModel || !key) return;
+
+  cfg.provider = selectedModel;
+  cfg.key = key;
+  saveCfg();
+  updateBadge();
+  document.getElementById("modalMask").classList.remove("open");
+
+  if (!isFirstStart) return;
+
+  isFirstStart = false;
+  // Initialize scenes randomly
+  SCENES = shuffle([...ALL_SCENES]).slice(0, 4);
+  updateDots();
+  await startScene();
+}
+
+document.getElementById("keyInput").addEventListener("input", checkStartable);
+
+function updateBadge() {
+  const hasKey = !!(cfg.provider && cfg.key);
+  document.getElementById("modelBadgeText").textContent = hasKey ? MODELS[cfg.provider].label : "未配置";
+  document.getElementById("modelDot").className = "dot" + (hasKey ? " on" : "");
+}
+
+/* ── Utils ── */
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function md2html(t) {
+  t = t.replace(/```c\n([\s\S]*?)```/g,  (_,c)=>`<pre>${esc(c.trim())}</pre>`);
+  t = t.replace(/```\n?([\s\S]*?)```/g,   (_,c)=>`<pre>${esc(c.trim())}</pre>`);
+  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  return t.replace(/\n/g,'<br>');
+}
+function addMsg(role, html, typing=false) {
+  const wrap = document.getElementById("messages");
+  if (typing) {
+    const d = document.createElement("div");
+    d.className="msg ai"; d.id="typing";
+    d.innerHTML=`<div class="avatar ai-av">AI</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+    wrap.appendChild(d); wrap.scrollTop=wrap.scrollHeight; return;
+  }
+  const d = document.createElement("div");
+  d.className="msg "+role;
+  d.innerHTML=(role==="ai"?`<div class="avatar ai-av">AI</div>`:`<div class="avatar user-av">我</div>`)
+    +`<div class="bubble">${html}</div>`;
+  wrap.appendChild(d); wrap.scrollTop=wrap.scrollHeight;
+}
+function rmTyping() { const t=document.getElementById("typing"); if(t) t.remove(); }
+
+function updateDots() {
+  if (SCENES.length === 0) return;
+  for(let i=0;i<SCENES.length;i++){
+    const d=document.getElementById("dot-"+i);
+    d.className="scene-dot"+(i<currentScene?" done":i===currentScene?" active":"");
+  }
+}
+function updateCard(reveal) {
+  if (SCENES.length === 0) return;
+  const s=SCENES[currentScene];
+  document.getElementById("sceneTitle").textContent=s.title;
+  document.getElementById("sceneDesc").textContent=s.desc;
+  const tag=document.getElementById("sceneTag");
+  if(reveal){ tag.className="tag "+s.tagClass; tag.textContent=s.tagText; }
+  else       { tag.className="tag tag-unknown"; tag.textContent="待判断"; }
+}
+
+/* ── API call ── */
+async function callModel(userMsg) {
+  if (!cfg.provider || !cfg.key) throw new Error("请先配置模型和 API Key");
+  conversationHistory.push({role:"user", content:userMsg});
+  const reply = await MODELS[cfg.provider].call(conversationHistory, SYSTEM_PROMPT, cfg.key);
+  conversationHistory.push({role:"assistant", content:reply});
+  return reply;
+}
+
+/* ── Scene flow ── */
+async function startScene() {
+  updateCard(false); updateDots();
+  const s = SCENES[currentScene];
+  
+  // 提升了提问的清晰度和具体性
+  const openingAngles = [
+    `请清晰地向学生描述这个场景的情境，然后具体地问学生："结合这个过程，你觉得它对数据的存入和取出有什么特殊的先后顺序要求？"（只提问，不给答案）`,
+    `请以生动的语言将这个场景描述给学生，然后明确提问："如果我们要用代码管理这些数据，这里面的数据进出的主要特点是什么？谁最先被处理，谁最后被处理？"（只提问，不给答案）`,
+    `请先详细交代这个场景的背景，然后具体地向学生抛出问题："如果要设计这个系统，你觉得它最核心的插入和删除操作应该满足什么规律？这让你想到了哪个我们刚学过的数据结构？"（只提问，不给答案）`
+  ];
+  const angle = openingAngles[Math.floor(Math.random() * openingAngles.length)];
+  const prompt = `现在开始第${currentScene+1}个场景：【${s.title}】\n场景描述：${s.desc}\n\n${angle}`;
+  addMsg("ai","",true);
+  try {
+    const r = await callModel(prompt); rmTyping(); addMsg("ai", md2html(r));
+  } catch(e) { rmTyping(); addMsg("ai", `⚠️ ${esc(e.message)}`); }
+}
+
+async function sendMessage() {
+  const ta = document.getElementById("userInput");
+  const text = ta.value.trim();
+  if (!text || isLoading) return;
+  if (!cfg.provider || !cfg.key) { openSettings(); return; }
+  ta.value=""; ta.style.height="auto";
+  isLoading=true; document.getElementById("sendBtn").disabled=true;
+  addMsg("user", esc(text));
+  const s = SCENES[currentScene];
+  addMsg("ai","",true);
+  try {
+    const hint = `（当前场景：${s.title}，正确答案是${s.tagText}，但不要直接告诉学生。注意：如果要要求学生写函数的话，请要求写出核心操作的【函数首部】即可。并且如果当前回复里有任何提问，绝对不能带上[SCENE_COMPLETE]！）`;
+    const r = await callModel(text+"\n"+hint);
+    rmTyping();
+    const isComplete = r.includes("[SCENE_COMPLETE]");
+    const displayText = r.replace(/\[SCENE_COMPLETE\]/g, "").trimEnd();
+    const hasCode = displayText.includes("```") || displayText.includes("typedef") || displayText.includes("void") || displayText.includes("int");
+    
+    addMsg("ai", md2html(displayText));
+    if (hasCode) updateCard(true);
+    
+    // 只有收到结束标记，才会显示"下一个场景"按钮，确保如果有问题一定不出现按钮
+    if (isComplete) setTimeout(showNextBtn, 800);
+  } catch(e) { rmTyping(); addMsg("ai", `⚠️ ${esc(e.message)}`); }
+  isLoading=false; document.getElementById("sendBtn").disabled=false;
+}
+
+function showNextBtn() {
+  const wrap = document.getElementById("messages");
+  if (currentScene >= SCENES.length-1) {
+    const d = document.createElement("div");
+    d.innerHTML=`<div class="completed-banner"><h3>🎉 全部场景完成！</h3><p>你已掌握多种线性结构的应用判断，做得很棒！</p></div>`;
+    wrap.appendChild(d); wrap.scrollTop=9999; return;
+  }
+  const d = document.createElement("div");
+  d.style.cssText="text-align:center;padding:8px 0";
+  d.innerHTML=`<button class="opt-btn" onclick="nextScene(this)">进入下一个场景 →</button>`;
+  wrap.appendChild(d); wrap.scrollTop=9999;
+}
+function nextScene(btn) {
+  btn.parentElement.remove();
+  currentScene++; conversationHistory=[]; startScene();
+}
+
+/* ── Input auto-resize ── */
+document.getElementById("userInput").addEventListener("input", function(){
+  this.style.height="auto";
+  this.style.height=Math.min(this.scrollHeight,120)+"px";
+});
+document.getElementById("userInput").addEventListener("keydown", function(e){
+  if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
+});
+
+/* ── Boot ── */
+updateBadge();
+openSettings();
+</script>
+</body>
+</html>
